@@ -1,17 +1,13 @@
-"""Aysnc Autobid script for HW."""
+"""Synchronous Autobid script for HW."""
 
 import re
-import grequests
+import requests
 from conf import cookies, headers, AUTOBID_VALUE
 
 with open('player_names.txt', 'r') as f:
     urls = f.readlines()
     autobid_amount = AUTOBID_VALUE
-    pool_size = len(urls)
 
-    job_pool = grequests.Pool(pool_size)
-
-    request_list = []
     for url in urls:
         url = url.rstrip('\n')
         # temp headers to insert referer in header for this player
@@ -27,6 +23,10 @@ with open('player_names.txt', 'r') as f:
 
         request_url = "http://hitwicket.com/premium/autoBid/create/player_id/%s" % player_id
 
-        request_list.append(grequests.post(request_url, headers=temp_headers, cookies=cookies, data=data))
+        r = requests.post(request_url, headers=temp_headers, cookies=cookies, data=data)
 
-    print grequests.map(request_list)
+        if r.status_code == 200:
+            print "success for player: ", url
+        else:
+            print "failed for player: ", url
+            print r.content
