@@ -1,3 +1,4 @@
 *.pyc
-auction_page.html
-extract_links.py
+*.txt
+.env
+*.html
