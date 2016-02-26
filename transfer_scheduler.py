@@ -1,6 +1,7 @@
 import re
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
+from urllib import quote_plus
 from bs4 import BeautifulSoup as bs4
 
 from conf import headers, cookies
@@ -9,13 +10,12 @@ SCHEDULE_DURATION = 48
 
 request_url = "http://hitwicket.com/premium/scheduler/transferScheduler"
 
-print "input time to start: (like 24-02-2016 03:00:00)"
-
 with open('transfer_player_names.txt', 'r') as f:
     player_urls = f.readlines()
 
     req_list = []
     payload = {}
+    prev_time = None # to store time entered between subsequent players for easy input
     for each_url in player_urls:
         # fetch player_id for this guy
         player_id = re.findall(r'\d+', each_url)[0]
@@ -31,7 +31,7 @@ with open('transfer_player_names.txt', 'r') as f:
             break
 
         soup = bs4(r.content, 'html.parser')
-        ele_text = soup.div.div.div.p.text
+        ele_text = soup.find_all('p')[-1].text # the last one is always RSP text (even in case of players with bdays)
         m = re.search(r'[\d\,]+', ele_text)
         amt_string = m.group(0).replace(',', '')
         rsp_price = int(amt_string)
@@ -50,9 +50,42 @@ with open('transfer_player_names.txt', 'r') as f:
         print "price entered is: ", price
         current_payload = payload
         current_payload['Referer'] = each_url
-        data = 'bidamount={0}&duration_hrs={1}&schedule_transfer=1&schedule_time=24+February%2C+2016+07%3A25&player_id=12734304'
-        print "data: ", data
+        prev_time_string = "" if prev_time is None else prev_time
+        print "Enter time (format: {0}) ('p', 'prev' or [ENTER] for previous time {1}):".format(
+            datetime.strftime(
+                datetime.now() + timedelta(minutes=35), # HW needs schedule to be at least 30 minutes ahead. lets go 35 ahead
+                "%d-%m-%y %H:%M"
+            ), prev_time_string
+        )
 
-        # requests.post(
-        #     request_url, data=data, headers=headers, cookies=cookies
-        # )
+        time_string = raw_input()
+        prev_inputs = ['prev', 'p', '']
+        if time_string in prev_inputs and prev_time is not None:
+            time_string = prev_time
+        elif time_string in prev_inputs and prev_time is None:
+            print "enter valid time."
+            exit()
+        else:
+            prev_time = time_string
+
+        schedule_time = datetime.strptime(time_string, "%d-%m-%y %H:%M")
+        schedule_time = quote_plus(datetime.strftime(schedule_time, "%d %B, %Y %H:%M")) # convert to format HW uses
+        data = 'bidamount={0}&duration_hrs={1}&schedule_transfer=1&schedule_time={2}&player_id={3}'.format(
+            price, SCHEDULE_DURATION, schedule_time, player_id
+        )
+
+        r = requests.post(
+            request_url, data=data, headers=headers, cookies=cookies
+        )
+
+        if r.status_code == 200:
+            print "Successfully placed bid of {0} for {1}".format(price, each_url)
+        else:
+            import pdb; pdb.set_trace()
+            print "Error occured. Status code: ", r.status_code
+            print "response content: "
+            # print r.content
+
+        # just some extra spacing to clear up stuff
+        print
+        print
