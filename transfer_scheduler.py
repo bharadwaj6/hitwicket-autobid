@@ -10,6 +10,16 @@ SCHEDULE_DURATION = 48
 
 request_url = "http://hitwicket.com/premium/scheduler/transferScheduler"
 
+def auto_asking_price(rsp_price):
+    rsp_price = int(rsp_price)
+    if rsp_price > 1000000:
+        return rsp_price - 10000
+    elif 450000 < rsp_price < 1000000:
+        return rsp_price - 5000
+    else:
+        return rsp_price
+
+
 with open('transfer_player_names.txt', 'r') as f:
     player_urls = f.readlines()
 
@@ -38,12 +48,22 @@ with open('transfer_player_names.txt', 'r') as f:
 
         # take input asking price from input
         print "Enter Asking Price (RSP is {0}): ".format(rsp_price)
-        price = input()
+        price = raw_input()
+        if price == "":
+            # if nothing is entered use auto_asking_price function to get auto price
+            price = auto_asking_price(rsp_price)
+        else:
+            # to check in while and loop if not in safe range
+            price = int(price)
+
         while not (0.65 * rsp_price) <= price <= (1.5 * rsp_price):
+            # check if entered price is in safe range
             print "Sorry, please enter again (RSP is {0}: )".format(rsp_price)
             price = raw_input()
             if price == "quit":
                 exit()
+            elif price == "":
+                price = auto_asking_price(rsp_price)
             else:
                 price = int(price) # trust user input, no cast checks here
 
