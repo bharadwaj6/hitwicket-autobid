@@ -7,9 +7,6 @@ from conf import cookies, headers, AUTOBID_VALUE
 with open('player_names.txt', 'r') as f:
     urls = f.readlines()
     autobid_amount = AUTOBID_VALUE
-    pool_size = len(urls)
-
-    job_pool = grequests.Pool(pool_size)
 
     request_list = []
     for url in urls:
