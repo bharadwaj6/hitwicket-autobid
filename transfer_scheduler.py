@@ -28,7 +28,7 @@ def auto_asking_price(rsp_price):
 with open('transfer_player_names.txt', 'r') as f:
     player_urls = f.readlines()
     # dirty way to avoid similar type of players being put in auction at the same time
-    random.shuffle(player_urls)
+    # random.shuffle(player_urls)
 
     req_list = []
     payload = {}
