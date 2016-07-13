@@ -88,8 +88,16 @@ with open('transfer_player_names.txt', 'r') as f:
 
             time_string = raw_input()
             prev_inputs = ['prev', 'p', '']
+            delta_inputs = ['del', 'd']
             if time_string in prev_inputs and prev_time is not None:
                 time_string = prev_time
+            elif time_string in delta_inputs and prev_time is not None:
+                # add 30 minutes to prev time
+                time_string = datetime.strftime(
+                    datetime.strptime(prev_time, "%d-%m-%y %H:%M") + timedelta(minutes=30),
+                    "%d-%m-%y %H:%M"
+                )
+                prev_time = time_string
             elif time_string in prev_inputs and prev_time is None:
                 print "enter valid time."
                 exit()
@@ -108,7 +116,7 @@ with open('transfer_player_names.txt', 'r') as f:
             )
 
             if r.status_code == 200:
-                print "Successfully placed bid of {0} for {1} after {2} hours".format(price, each_url, schedule_duration)
+                print "Successfully placed bid of {0} for {1} after {2} hours at {3}".format(price, each_url, schedule_duration, str(prev_time))
             else:
                 print "Error occured. Status code: {0} for player: {1}".format(r.status_code, each_url)
                 errortime_input = raw_input("Enter c to continue placing next players in auction, anything else to exit\n")
