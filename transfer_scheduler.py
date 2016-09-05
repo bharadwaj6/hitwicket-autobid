@@ -18,11 +18,11 @@ request_url = "http://hitwicket.com/premium/scheduler/transferScheduler"
 def auto_asking_price(rsp_price):
     rsp_price = int(rsp_price)
     if rsp_price > 1000000:
-        return rsp_price - 20000
+        return rsp_price - 250000
     elif 450000 < rsp_price < 1000000:
-        return rsp_price - 10000
+        return rsp_price - 150000
     else:
-        return rsp_price - 1000
+        return rsp_price - 30000
 
 
 with open('transfer_player_names.txt', 'r') as f:
@@ -45,7 +45,6 @@ with open('transfer_player_names.txt', 'r') as f:
             if r.status_code != 200:
                 print "something went wrong while fetching player sell price details."
                 print "status_code: ", r.status_code
-                print r.content
                 break
 
             soup = bs4(r.content, 'html.parser')
@@ -87,14 +86,14 @@ with open('transfer_player_names.txt', 'r') as f:
             )
 
             time_string = raw_input()
-            prev_inputs = ['prev', 'p', '']
-            delta_inputs = ['del', 'd']
+            prev_inputs = ['prev', 'p']
+            delta_inputs = ['del', 'd', '']
             if time_string in prev_inputs and prev_time is not None:
                 time_string = prev_time
             elif time_string in delta_inputs and prev_time is not None:
-                # add 30 minutes to prev time
+                # add 1 hour to prev time
                 time_string = datetime.strftime(
-                    datetime.strptime(prev_time, "%d-%m-%y %H:%M") + timedelta(minutes=30),
+                    datetime.strptime(prev_time, "%d-%m-%y %H:%M") + timedelta(minutes=60),
                     "%d-%m-%y %H:%M"
                 )
                 prev_time = time_string
