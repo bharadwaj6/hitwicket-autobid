@@ -10,14 +10,23 @@ def get_schedule_duration():
 
 request_url = "http://hitwicket.com/premium/scheduler/transferScheduler"
 
-def fetch_asking_price(rsp_price):
+def fetch_asking_price(rsp_price, old=False):
     rsp_price = int(rsp_price)
-    if rsp_price > 1000000:
-        return rsp_price - 250000
-    elif 450000 < rsp_price < 1000000:
-        return rsp_price - 150000
-    else:
-        return rsp_price - 30000
+    # if not old:
+    #     # return int(rsp_price/2)
+    #     if rsp_price > 1000000:
+    #         return rsp_price - 350000
+    #     elif 450000 < rsp_price < 1000000:
+    #         return rsp_price - 300000
+    #     else:
+    #         return rsp_price - 100000
+    # else:
+    #     # for old players (more than 30 years) - check price multiplier once
+    #     if rsp_price < 80000:
+    #         return rsp_price - 100000
+    #     else:
+    #         return int(rsp_price * 1.35)
+    return (rsp_price // 2)
 
 player_rsp = {}
 def parse_rsp_factory(*factory_args, **factory_kwargs):
@@ -30,6 +39,8 @@ def parse_rsp_factory(*factory_args, **factory_kwargs):
         m = re.search(r'[\d\,]+', ele_text)
         amt_string = m.group(0).replace(',', '')
         rsp_price = int(amt_string)
+
+        # CHECK IF OLD VALUE IS TRUE OR FALSE HERE!!!!!! default is false
         player_rsp[factory_kwargs['player_url']] = fetch_asking_price(rsp_price)
 
     return parse_responses
@@ -66,14 +77,15 @@ def generate_bid_times(no_of_players):
     # generate timestamps for the next day
     time_now = datetime.now()
     today = datetime(time_now.year, time_now.month, time_now.day)
-    scheduled_day = today + timedelta(days=1)
+    # scheduled_day = today + timedelta(days=1)
+    scheduled_day = today + timedelta(days=3)
     peak_time_begin = 64800 # 18:00 clock in the evening
     peak_time_end = 86340 # 23.59 midnight
     least_bid_end = 34200 # day begin to 9:30 AM morning
 
     # 20% players to least bid time, 45% to peak time, 35% to rest of the day
     least_bid_time_number = int(no_of_players * 0.2)
-    peak_time_number = int(no_of_players * 0.45)
+    peak_time_number = int(no_of_players * 0.40)
     rest_of_the_day_number = no_of_players - peak_time_number - least_bid_time_number
 
     least_bid_timestamps = [scheduled_day + x for x in get_random_timedeltas(0, least_bid_end, least_bid_time_number)]
